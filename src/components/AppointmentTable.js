@@ -1,32 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-//import appointments from '../data/appointment.json';
 import clsx from 'clsx';
 import { Table, TableBody, TableHead, TableCell, TableRow, Paper, Checkbox, Toolbar, Tooltip, Typography } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import IconButton from '@material-ui/core/IconButton';
-import { withStyles, makeStyles, lighten } from '@material-ui/core/styles';
-
+import { makeStyles, lighten } from '@material-ui/core/styles';
 import axios from 'axios';
 import moment from 'moment';
+import {baseUrl} from '../shared/config';
 
 
 
 function AppointmentTable(props) {
+    const {doctorId, patientId, dateTime, patientList, doctorList} = props;
     const [appointment, setAppt] = useState([]);
-    const [patients,setPatients] = useState([]);
-    const [doctors,setDoctors] = useState([]);
+    
     const classes = useStyles();
-
-    const [selected, setSelected] = React.useState([]);
+    const [selected, setSelected] = useState([]);
 
 
 
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
-            const newSelecteds = filteredAppt.map((n) => n.id); //CHECK WHICH FIELD TO SET - PROBABLY ID
+            const newSelecteds = filteredAppt.map((n) => n.id);
             setSelected(newSelecteds);
-            console.log(newSelecteds);
             return;
         }
         setSelected([]);
@@ -48,19 +45,20 @@ function AppointmentTable(props) {
                 selected.slice(selectedIndex + 1),
             );
         }
-        console.log(newSelected);
         setSelected(newSelected);
     };
 
     const handleDelete = async (event) => {
-        alert(selected);
-        await axios
-            .delete(`http://localhost:3001/appointments/${selected}`)
-            .then(data => {
-                console.log(data);
-
-            })
-            .catch(err => alert(err));
+        try {
+            for(let i in selected){
+                await axios
+                .delete(baseUrl+`appointments/${selected[i]}`)
+            }
+            
+        } catch (err) {
+            console.log(err);
+        }
+           
         fetchData();
         setSelected([]);
     }
@@ -69,40 +67,20 @@ function AppointmentTable(props) {
 
     async function fetchData() {
         try {
-            const result = await axios('http://localhost:3001/appointments')
+            const result = await axios(baseUrl+'appointments')
             setAppt(result.data);
         } catch (err) {
             console.log(err);
         }
     }
-    async function fetchPatients() {
-        try {
-            const result = await axios('http://localhost:3001/patients')
-            setPatients(result.data);
-        } catch (err) {
-            console.log(err);
-        }
-    }
-
-    async function fetchDoctors() {
-        try {
-            const result = await axios('http://localhost:3001/doctors')
-            setDoctors(result.data);
-        } catch (err) {
-            console.log(err);
-        }
-    }
-
-
+    
     const isSelected = (name) => selected.indexOf(name) !== -1;
 
     useEffect(() => {
-        fetchData();
-        fetchPatients();
-        fetchDoctors()
+        fetchData();  
     }, []);
 
-    const filteredAppt = (renderAppointments(appointment, props));
+    const filteredAppt = (renderAppointments(appointment,patientId,doctorId,dateTime));
 
     return (
         <Paper className="classes.root">
@@ -149,11 +127,11 @@ function AppointmentTable(props) {
         </Paper>
     )
     function getPatientName(id) {
-        return (patients.filter((a) => { return a.id === id }).map((i) => { return i.name }));
+        return (patientList.filter((a) => { return a.id === id }).map((i) => { return i.name }));
     }
     
     function getDoctorName(id) {
-        return (doctors.filter((a) => { return a.id === id }).map((i) => { return i.name }));
+        return (doctorList.filter((a) => { return a.id === id }).map((i) => { return i.name }));
     }
 
 
@@ -201,19 +179,19 @@ function formatDateTime(date) {
     return time;
 }
 
-function renderAppointments(appt, props) {
-    if ((!isNaN(props.doctorId)) && (!isNaN(props.patientId)) && props.dateTime!==null) {
-        appt = appt.filter((a) => { return ((a.doctorId === props.doctorId) && (a.patientId === props.patientId)
-            && (a.dateTime === props.dateTime)) })
+function renderAppointments(appt, patientId, doctorId, dateTime) {
+    if ((!isNaN(doctorId)) && (!isNaN(patientId)) && dateTime!==null) {
+        appt = appt.filter((a) => { return ((a.doctorId === doctorId) && (a.patientId === patientId)
+            && (a.dateTime === dateTime)) })
     }
-    else if (!isNaN(props.doctorId))
-        appt = isNaN(props.doctorId) ? appt : appt.filter((a) => { return a.doctorId === props.doctorId })
+    else if (!isNaN(doctorId))
+        appt = isNaN(doctorId) ? appt : appt.filter((a) => { return a.doctorId === doctorId })
 
-    else if (!isNaN(props.patientId))
-        appt = isNaN(props.patientId) ? appt : appt.filter((a) => { return a.patientId === props.patientId })
+    else if (!isNaN(patientId))
+        appt = isNaN(patientId) ? appt : appt.filter((a) => { return a.patientId === patientId })
 
-    else if (props.dateTime !== null)
-        appt = props.dateTime !== null ? appt : appt.filter((a) => { return a.dateTime === props.dateTime })
+    else if (dateTime !== null)
+        appt = dateTime !== null ? appt : appt.filter((a) => { return a.dateTime === dateTime })
 
     return appt;
 }

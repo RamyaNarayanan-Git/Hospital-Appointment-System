@@ -1,11 +1,12 @@
-import React from 'react';
-import { FormControl, InputLabel, Button, AppBar, Select, MenuItem,Typography } from '@material-ui/core';
+import React,{useEffect,useState} from 'react';
+import { FormControl, InputLabel, Button, AppBar, Select, MenuItem,Typography,FormHelperText } from '@material-ui/core';
 import BookIcon from '@material-ui/icons/Edit';
 import { makeStyles } from '@material-ui/core/styles';
 import AppointmentTable from './AppointmentTable'
 import axios from 'axios';
 import { DateTimePicker,MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from '@date-io/date-fns';
+import {baseUrl} from '../shared/config';
 
 
 
@@ -23,50 +24,97 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Booking() {
-    const [doctor, setDoctor] = React.useState('');
-    const [patient, setPatient] = React.useState('');
-    const [doctors, setDoctors] = React.useState([]);
-    const [patients, setPatients] = React.useState([]);
-    const [dateTime, setDateTime] = React.useState(new Date());
+    const [doctorId, setDoctorId] = useState('');
+    const [patientId, setPatientId] = useState('');
+    const [doctors, setDoctors] = useState([]);
+    const [patients, setPatients] = useState([]);
+    const [dateTime, setDateTime] = useState(new Date());
+    const [ patientIdError, setPatientIdError ] = useState(false);
+    const [doctorIdError,setDoctorIdError] = useState(false);
     
     const classes = useStyles();
 
     const calculateId = () => {
-        return doctor+patient+dateTime.toTimeString();
+        return doctorId+patientId+dateTime.toTimeString();
+    }
+
+    function formatDate(date){
+
+        return date.getFullYear().toString()+(date.getMonth()+1).toString().padStart(2,'0')+date.getDate().toString()+date.getHours().toString().padStart(2,'0')+date.getMinutes().toString();
+          
+    }
+
+    async function validateAppointment(apptDate,apptDoctor){
+
+        try{
+            const result = await axios.get(baseUrl+'appointments/', {
+                params: {
+                  dateTime: apptDate,
+                  doctorId: apptDoctor
+                }
+              });
+            if(result.data)
+                return false;
+        }catch(err){
+            console.log(err);
+            return true;
+        }
+        
     }
 
     const handleChange = (event) => {
-        setDoctor(event.target.value);
+        setDoctorId(event.target.value);
     };
 
+    const handleDateChange = (date) => {
+        setDateTime(date);
+    };
+
+
     const handlePatientChange = (event) => {
-        setPatient(event.target.value);
+        setPatientId(event.target.value);
     };
 
     const handleBooking = async (event) => {
-        var data = { id: calculateId, doctorId: doctor, patientId: patient, dateTime: formatDate(dateTime) };
+        if(!doctorIdError){
+            setDoctorIdError(true);
+              
+        }
+        else if(!patientIdError){
+            setPatientIdError(true);
+         }
+        else{
+            setPatientIdError(false);
+            setDoctorIdError(false);
+            var formattedDate = formatDate(dateTime);
+            if(validateAppointment(formattedDate,doctorId)){
+                //if(formattedDate )
+                var data = { id: calculateId, doctorId: doctorId, patientId: patientId, dateTime: formatDate(dateTime) };
 
-        await axios.post('http://localhost:3001/appointments',data);
-        alert('Booked');
+                await axios.post(baseUrl+'appointments',data);
+                alert('Booked');
+                setDoctorId('');
+                setPatientId('');
+                setDateTime(new Date());
+            }
+        }
+        
     }
 
-   function formatDate(date){
-
-    return date.getFullYear().toString()+(date.getMonth()+1).toString().padStart(2,'0')+date.getDate().toString()+date.getHours().toString().padStart(2,'0')+date.getMinutes().toString();
-      
-   }
+   
    async function fetchPatients() {
     try {
-        const result = await axios('http://localhost:3001/patients')
+        const result = await axios(baseUrl+'patients')
         setPatients(result.data);
     } catch (err) {
         console.log(err);
     }
 }
 
+
 async function fetchDoctors() {
     try {
-        const result = await axios('http://localhost:3001/doctors')
+        const result = await axios(baseUrl+'doctors')
         setDoctors(result.data);
     } catch (err) {
         console.log(err);
@@ -74,10 +122,10 @@ async function fetchDoctors() {
 }
 
 
-   React.useEffect(() => {
-        
+   useEffect(() => { 
         fetchPatients();
-        fetchDoctors()
+        fetchDoctors();
+        
     }, []);
     
 
@@ -90,10 +138,10 @@ async function fetchDoctors() {
           </AppBar>
           <br/><br/>
           <div style={{ height: 400, width: '100%' }}>
-            <FormControl className={classes.formControl}>
-                <InputLabel htmlFor="doctorName">Select Doctor</InputLabel>
+            <FormControl className={classes.formControl} error={doctorIdError}>
+                <InputLabel htmlFor="doctorName">Select doctor</InputLabel>
                 <Select
-                    value={doctor}
+                    value={doctorId}
                     onChange={handleChange}>
                     {
                         doctors.map((doctor) => {
@@ -103,13 +151,14 @@ async function fetchDoctors() {
                         })
                     }
                 </Select>
+                {doctorIdError && <FormHelperText>This is required!</FormHelperText>}
             </FormControl>
-            <FormControl className={classes.formControl}>
-                <InputLabel htmlFor="patient">Select Patient</InputLabel>
+            <FormControl className={classes.formControl} error={patientIdError}>
+                <InputLabel htmlFor="patientId">Select Patient</InputLabel>
                 <Select
-                    value={patient}
+                      value={patientId}
                     onChange={handlePatientChange}
-                    name="patient" >
+                    name="patientId" >
                     {
                         patients.map((patient) => {
                             return (
@@ -118,6 +167,7 @@ async function fetchDoctors() {
                         })
                     }
                 </Select>
+                {patientIdError && <FormHelperText>This is required!</FormHelperText>}
             </FormControl>
             <FormControl className={classes.formControl}>
             
@@ -125,12 +175,11 @@ async function fetchDoctors() {
             <DateTimePicker
         value={dateTime}
         disablePast
-        onChange={setDateTime}
+        onChange={handleDateChange}
         label="Pick Date and Time"
         //format="dd/MM/yyyy HH:mm"
         showTodayButton
-        minTime={new Date(0, 0, 0, 8)}
-          maxTime={new Date(0, 0, 0, 18, 45)}
+        
       />
 </MuiPickersUtilsProvider> 
             </FormControl> 
@@ -151,7 +200,8 @@ async function fetchDoctors() {
         </Button>
             </FormControl>
             
-              <AppointmentTable doctorId={parseInt(doctor)} patientId={parseInt(patient)} dateTime={formatDate(dateTime)} />  
+                <AppointmentTable doctorId={parseInt(doctorId)} patientId={parseInt(patientId)} dateTime={formatDate(dateTime)}
+              patientList={patients} doctorList={doctors}/>   
             </div>
         </>
 
