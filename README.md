@@ -47,12 +47,12 @@ Patients (id, name, Age, Gender)
 Doctors (id, name)
 Appointments (id, doctorId, patientId, dateTime)
 Requirements:
-Book appointment by doctor, patient, date&time conditions checked: For each doctor appointments shouldn't conflict with their schedule Both patient and doctor name are required.
+1. Book appointment by doctor, patient, date&time conditions checked: For each doctor appointments shouldn't conflict with their schedule Both patient and doctor name are required.
 
-Search appointments by doctor's name, patient's name Appointment table is loaded based on doctor and patient selection
+2. Search appointments by doctor's name, patient's name Appointment table is loaded based on doctor and patient selection
 
-Cancel appointment Cancel by clicking on 1 or more appointments
-=======
+3. Cancel appointment Cancel by clicking on 1 or more appointments
+
 ## Technologies Used:
 ##### `React - (installed using create-react-app)`
 ##### `MaterialUI - @material-ui/core@4.12.1, @material-ui/icons@4.11.2,  @material-ui/pickers@3.3.10`
