@@ -18,8 +18,6 @@ function AppointmentTable(props) {
     const classes = useStyles();
     const [selected, setSelected] = useState([]);
 
-
-
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
             const newSelecteds = filteredAppt.map((n) => n.id);
@@ -48,6 +46,7 @@ function AppointmentTable(props) {
         setSelected(newSelected);
     };
 
+    //delete 
     const handleDelete = async (event) => {
         try {
             for(let i in selected){
@@ -62,7 +61,6 @@ function AppointmentTable(props) {
         fetchData();
         setSelected([]);
     }
-
 
 
     async function fetchData() {
@@ -115,7 +113,9 @@ function AppointmentTable(props) {
                             <TableCell align="right" component="th" id={appointment.id} scope="row" padding="none">
                                 {i + 1}
                             </TableCell>
-                            <TableCell align="right">{formatDateTime(appointment.dateTime)}</TableCell>
+                            <TableCell align="right">{formatDateTime(appointment.dateTime)}</TableCell> 
+
+                          
                             <TableCell align="right">{getDoctorName(appointment.doctorId)}</TableCell>
                             <TableCell align="right">{getPatientName(appointment.patientId)}</TableCell>
 
@@ -167,8 +167,6 @@ EnhancedTableHead.propTypes = {
     onSelectAllClick: PropTypes.func.isRequired,
     rowCount: PropTypes.number.isRequired,
 };
-
-
 
 
 function formatDateTime(date) {
@@ -249,7 +247,6 @@ function EnhancedTableToolbar(props) {
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
 };
-
 
 const useStyles = makeStyles((theme) => ({
     root: {
