@@ -39,7 +39,7 @@ Shut down the server by typing ctrl-C in the terminal window.
 ##### `MaterialUI - @material-ui/core@4.12.1, @material-ui/icons@4.11.2,  @material-ui/pickers@3.3.10`
 ##### `axios library for making API calls - axios@0.21.1`
 
-## Entities details and Assumptions made:
+## Entities details and Requirements details:
 
 ### Entities: 
 All the entities are saved in json file and served from json-server(installed as stated in the above section)
