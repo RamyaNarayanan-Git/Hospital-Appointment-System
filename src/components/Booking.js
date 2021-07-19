@@ -48,8 +48,15 @@ function Booking() {
         setDoctorId(event.target.value);
     };
 
+    //validate booking time to be between business hours(8AM - 4PM)
     const handleDateChange = (date) => {
-        setDateTime(date);
+        if(date.getHours()<8 || date.getHours()>16){
+            alert('Please select time between 8 AM to 4 PM')
+            setDateTime(new Date())
+        }
+        else{
+            setDateTime(date);
+        }
     };
 
     const handlePatientChange = (event) => {
@@ -64,10 +71,10 @@ function Booking() {
 
     //Validation and Error Checking before booking
     const handleBooking = (event) => {
-        if (!doctorIdError) {
+        if (doctorId === '') {
             setDoctorIdError(true);
         }
-        else if (!patientIdError) {
+        else if (patientId === '') {
             setPatientIdError(true);
         }
         else {
